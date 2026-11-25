@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sítios">
+<meta name="theme-color" content="#0f1117">
+<title>Sítios</title>
+<style>
+:root{--bg:#0f1117;--sf:#1a1d27;--bd:#262b3a;--tx:#f4f4f5;--mu:#8b90a0;--bl:#3b82f6;--gr:#22c55e;--or:#f59e0b;--rd:#ef4444}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{overscroll-behavior:none}
+button,input,textarea{font-family:inherit}
+#app{max-width:480px;margin:0 auto;height:100vh;height:100svh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 14px 0}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 10px}
+h1{font-size:28px;font-weight:900;letter-spacing:-.5px;margin:0}
+h1 small{font-size:14px;color:var(--mu);font-weight:700;margin-left:8px}
+.ib{background:var(--sf);border:1px solid var(--bd);color:var(--mu);width:40px;height:40px;border-radius:12px;font-size:18px}
+#q{width:100%;background:var(--sf);border:1px solid var(--bd);color:var(--tx);border-radius:12px;padding:12px 14px;font-size:16px;margin-bottom:10px;display:none;outline:none}
+#list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:12px;-webkit-overflow-scrolling:touch}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:18px;padding:14px;flex:0 0 auto}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.nm{font-size:20px;font-weight:800;line-height:1.2;word-break:break-word}
+.ad{font-size:13px;color:var(--mu);margin-top:3px;word-break:break-word}
+.nt{font-size:13px;color:var(--or);margin-top:4px;word-break:break-word}
+.ed{background:none;border:none;color:var(--mu);font-size:19px;padding:2px 6px;margin:-4px -6px 0 0}
+.go{display:flex;gap:8px;margin-top:12px}
+.go a{flex:1;text-align:center;text-decoration:none;font-weight:900;font-size:15px;letter-spacing:.4px;padding:15px 0;border-radius:12px;color:#fff;text-transform:uppercase}
+.wz{background:var(--bl)}
+.gm{background:var(--gr);color:#06210f!important}
+.ap{background:#3a3f52;flex:0 0 76px!important}
+.go a:active{opacity:.7}
+.empty{color:var(--mu);text-align:center;margin-top:70px;font-size:15px;line-height:1.7}
+#add{margin:0 0 calc(10px + env(safe-area-inset-bottom));padding:17px;border:none;border-radius:16px;background:var(--tx);color:var(--bg);font-weight:900;font-size:16px;letter-spacing:.5px;text-transform:uppercase}
+#add:active{opacity:.8}
+#sh{position:fixed;inset:0;background:#000a;display:none;align-items:flex-end;justify-content:center;z-index:5}
+#sh.on{display:flex}
+.box{width:100%;max-width:480px;background:var(--sf);border-radius:22px 22px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;max-height:92vh;max-height:92svh;overflow:auto}
+.box h2{margin:0 0 2px;font-size:19px;font-weight:900}
+.box label{font-size:11px;color:var(--mu);font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:-4px}
+.box input,.box textarea{width:100%;background:var(--bg);border:1px solid var(--bd);color:var(--tx);border-radius:12px;padding:13px;font-size:16px;outline:none}
+.box input:focus,.box textarea:focus,#q:focus{border-color:var(--bl)}
+.row{display:flex;gap:8px;margin-top:4px}
+.btn{flex:1;padding:14px;border-radius:12px;border:none;font-weight:800;font-size:15px;background:#2a2f40;color:var(--tx)}
+.btn.p{background:var(--bl);color:#fff}
+.btn.d{background:#3a1d22;color:var(--rd);flex:0 0 auto;padding:14px 18px}
+.mini{align-self:flex-start;background:none;border:1px dashed var(--bd);color:var(--mu);border-radius:10px;padding:8px 12px;font-size:13px}
+.hint{font-size:12px;color:var(--mu);line-height:1.5}
+#toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#fff;color:#111;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;max-width:90%;display:none;z-index:9;text-align:center}
+</style>
+<base target="_blank">
+</head>
+<body>
+<div id="app">
+  <header><h1>Sítios<small id="cnt"></small></h1><button class="ib" id="bk" title="Backup">⇅</button></header>
+  <input id="q" placeholder="Procurar…" autocomplete="off">
+  <div id="list"></div>
+  <button id="add">+ Novo sítio</button>
+</div>
+<div id="sh"><div class="box" id="box"></div></div>
+<div id="toast"></div>
+
+<script>
+(function(){
+  const KEY = "ps_places", $ = id => document.getElementById(id), enc = encodeURIComponent;
+  const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  let P = [];
+  try { P = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) {} };
+  // Converte uma morada em coordenadas GPS (OpenStreetMap Nominatim, gratuito, sem chave)
+  const GEO = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=pt&countrycodes=pt&q=";
+  function geocode(addr) {
+    return fetch(GEO + enc(addr)).then(r => r.json())
+      .then(a => (a && a[0]) ? { lat: +(+a[0].lat).toFixed(6), lng: +(+a[0].lon).toFixed(6) } : null);
+  }
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  // Interpreta o que foi escrito: link do Maps, coordenadas ou morada
+  function parse(loc) {
+    loc = (loc || "").trim();
+    let m;
+    if (/^https?:\/\//i.test(loc)) {
+      m = loc.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || loc.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) ||
+          loc.match(/[?&](?:q|ll|destination|daddr|query)=(-?\d+\.\d+)(?:,|%2C)(-?\d+\.\d+)/i);
+      return { kind: "link", url: loc, lat: m && m[1], lng: m && m[2] };
+    }
+    m = loc.match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/);
+    if (m) return { kind: "geo", lat: m[1], lng: m[2] };
+    return { kind: "text", text: loc };
+  }
+
+  function links(p) {
+    const x = parse(p.loc), q = (x.kind === "text" && x.text) ? x.text : p.name;
+    // prioridade: coordenadas do texto/link > coordenadas guardadas na ficha
+    const c = (x.lat && x.lng) ? x.lat + "," + x.lng
+            : (p.lat != null && p.lng != null) ? p.lat + "," + p.lng : null;
+    return {
+      // Waze: com coordenadas navega direto; sem elas, só pesquisa (navigate=yes
+      // com pesquisa por texto é o que mandava o Waze para sítios errados)
+      wz: c ? "https://waze.com/ul?ll=" + enc(c) + "&navigate=yes" : "https://waze.com/ul?q=" + enc(q),
+      gm: c ? "https://www.google.com/maps/dir/?api=1&destination=" + c + "&travelmode=driving"
+            : (x.kind === "link" ? x.url : "https://www.google.com/maps/dir/?api=1&destination=" + enc(q) + "&travelmode=driving"),
+      ap: "https://maps.apple.com/?daddr=" + (c || enc(q)) + "&dirflg=d",
+      sub: x.kind === "text" ? x.text : (c ? (+x.lat).toFixed(5) + ", " + (+x.lng).toFixed(5) : "link do Maps")
+    };
+  }
+
+  function render() {
+    const f = ($("q").value || "").toLowerCase().trim();
+    $("q").style.display = P.length > 4 ? "block" : "none";
+    $("cnt").textContent = P.length ? P.length : "";
+    const L = P.filter(p => !f || (p.name + " " + p.loc + " " + (p.note || "")).toLowerCase().includes(f))
+               .sort((a, b) => (b.used || 0) - (a.used || 0));
+    $("list").innerHTML = L.length ? L.map(p => {
+      const k = links(p);
+      return '<div class="card"><div class="top"><div><div class="nm">' + esc(p.name) + '</div>' +
+        (k.sub ? '<div class="ad">' + esc(k.sub) + '</div>' : '') +
+        (p.note ? '<div class="nt">' + esc(p.note) + '</div>' : '') +
+        '</div><button class="ed" data-e="' + p.id + '">✎</button></div>' +
+        '<div class="go"><a class="wz" data-u="' + p.id + '" href="' + esc(k.wz) + '" target="_blank" rel="noopener">Waze</a>' +
+        '<a class="gm" data-u="' + p.id + '" href="' + esc(k.gm) + '" target="_blank" rel="noopener">Maps</a>' +
+        (IOS ? '<a class="ap" data-u="' + p.id + '" href="' + esc(k.ap) + '" target="_blank" rel="noopener">Apple</a>' : '') +
+        '</div></div>';
+    }).join("") : '<div class="empty">' + (P.length ? "Nada encontrado." : "Sem sítios ainda.<br>Carrega em <b>+ Novo sítio</b>.") + '</div>';
+  }
+
+  // Ao abrir um mapa, regista o uso (a lista só reordena quando voltas à app)
+  $("list").addEventListener("click", e => {
+    const ed = e.target.closest("[data-e]");
+    if (ed) { openForm(ed.dataset.e); return; }
+    const a = e.target.closest("[data-u]");
+    if (a) { const p = P.find(x => x.id === a.dataset.u); if (p) { p.used = Date.now(); save(); } }
+  });
+
+  const sheet = html => { $("box").innerHTML = html; $("sh").classList.add("on"); };
+  const closeSheet = () => $("sh").classList.remove("on");
+  $("sh").addEventListener("click", e => { if (e.target.id === "sh") closeSheet(); });
+  function toast(t) {
+    const o = $("toast"); o.textContent = t; o.style.display = "block";
+    clearTimeout(toast.t); toast.t = setTimeout(() => o.style.display = "none", 3500);
+  }
+
+  function openForm(id) {
+    const p = id ? P.find(x => x.id === id) : null;
+    sheet('<h2>' + (p ? "Editar sítio" : "Novo sítio") + '</h2>' +
+      '<label>Nome</label><input id="fn" placeholder="Casa da prima Ana" autocomplete="off" value="' + esc(p ? p.name : "") + '">' +
+      '<label>Morada, link do Maps ou coordenadas</label><input id="fl" placeholder="Rua…, Lisboa · link · 38.72, -9.13" autocomplete="off" autocapitalize="off" value="' + esc(p ? p.loc : "") + '">' +
+      '<button class="mini" id="gps">📍 usar onde estou agora</button>' +
+      '<label>Nota (opcional)</label><input id="ft" placeholder="3º esq., tocar ao 12" autocomplete="off" value="' + esc(p ? (p.note || "") : "") + '">' +
+      '<div class="row">' + (p ? '<button class="btn d" id="fd">Apagar</button>' : '') +
+      '<button class="btn" id="fc">Cancelar</button><button class="btn p" id="fs">Guardar</button></div>');
+    $("fc").onclick = closeSheet;
+    $("gps").onclick = () => {
+      if (!navigator.geolocation) { toast("Sem localização neste dispositivo"); return; }
+      toast("A obter localização…");
+      navigator.geolocation.getCurrentPosition(
+        r => { $("fl").value = r.coords.latitude.toFixed(6) + ", " + r.coords.longitude.toFixed(6); toast("Localização preenchida"); },
+        () => toast("Não deu: permite a localização"), { enableHighAccuracy: true, timeout: 10000 });
+    };
+    $("fs").onclick = () => {
+      const name = $("fn").value.trim(), loc = $("fl").value.trim(), note = $("ft").value.trim();
+      if (!name) { $("fn").focus(); return; }
+      const t = p || { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), used: Date.now() };
+      t.name = name; t.loc = loc; t.note = note;
+      if (!p) P.push(t);
+      const finish = msg => { save(); closeSheet(); render(); toast(msg); };
+      const x = parse(loc);
+      if (x.kind === "text" && x.text) {
+        toast("A localizar morada…");
+        geocode(x.text).then(g => {
+          if (g) { t.lat = g.lat; t.lng = g.lng; finish("Morada localizada — Waze com GPS exato"); }
+          else finish("Não encontrei a morada — Waze vai pesquisar o nome");
+        }).catch(() => finish("Sem net — Waze vai pesquisar o nome"));
+      } else {
+        delete t.lat; delete t.lng;
+        finish("Guardado");
+      }
+    };
+    if (p) $("fd").onclick = () => {
+      if (confirm('Apagar "' + p.name + '"?')) { P = P.filter(x => x.id !== p.id); save(); closeSheet(); render(); }
+    };
+    if (!p) setTimeout(() => $("fn").focus(), 60);
+  }
+
+  // Backup: copiar / importar (o localStorage pode perder-se no telemóvel)
+  $("bk").onclick = () => {
+    sheet('<h2>Backup</h2><label>Os teus sítios (copia e guarda)</label>' +
+      '<textarea id="bt" rows="6">' + esc(JSON.stringify(P)) + '</textarea>' +
+      '<div class="row"><button class="btn" id="bc">Copiar</button><button class="btn p" id="bi">Importar</button></div>' +
+      '<button class="btn" id="bg">Localizar moradas em falta</button>' +
+      '<button class="btn" id="bx">Fechar</button>' +
+      '<div class="hint">Para importar, cola aqui o texto que guardaste e carrega em Importar. Junta ao que já tens, sem duplicar.</div>');
+    $("bx").onclick = closeSheet;
+    $("bc").onclick = () => {
+      const t = $("bt"); t.select();
+      (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).catch(() => document.execCommand("copy"));
+      toast("Copiado");
+    };
+    $("bi").onclick = () => {
+      try {
+        const a = JSON.parse($("bt").value); if (!Array.isArray(a)) throw 0;
+        let n = 0;
+        a.forEach(x => {
+          if (x && x.id && x.name && !P.some(y => y.id === String(x.id))) {
+            P.push({ id: String(x.id), name: String(x.name), loc: String(x.loc || ""), note: String(x.note || ""), used: +x.used || 0 }); n++;
+          }
+        });
+        save(); closeSheet(); render(); toast(n + " importados");
+      } catch (e) { toast("Texto inválido"); }
+    };
+    $("bg").onclick = async () => {
+      const missing = P.filter(s => { const y = parse(s.loc); return y.kind === "text" && y.text && y.lat == null && s.lat == null; });
+      if (!missing.length) { toast("Todas as moradas já têm coordenadas"); return; }
+      for (const s of missing) {
+        toast("A localizar (" + (missing.indexOf(s) + 1) + "/" + missing.length + ")…");
+        try { const g = await geocode(parse(s.loc).text); if (g) { s.lat = g.lat; s.lng = g.lng; } } catch (e) {}
+        await new Promise(r => setTimeout(r, 1100));
+      }
+      save(); closeSheet(); render(); toast("Localização concluída");
+    };
+  };
+
+  $("add").onclick = () => openForm();
+  $("q").oninput = render;
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
+  window.addEventListener("pageshow", render);
+  render();
+})();
+</script>
+</body>
+</html>
